@@ -1,0 +1,269 @@
+#include<iostream>
+#include<fstream>
+#include<string.h>
+using namespace std;
+class student
+  {
+	typedef struct stud
+	{
+		int roll;
+		char name[10];
+		char div;
+		char add[10];
+	}stud;
+	stud rec;
+	public:
+	  void create();
+	  void display();
+	  int search();
+	  void Delete();
+  };
+void student::create()
+  {
+	char ans;
+	ofstream fout;
+	fout.open("stud.dat",ios::out|ios::binary);
+	do
+	  {
+		cout<<"\n\tEnter Roll No of Student    : ";
+		cin>>rec.roll;
+		cout<<"\n\tEnter a Name of Student     : ";
+		cin>>rec.name;
+		cout<<"\n\tEnter a Division of Student : ";
+		cin>>rec.div;
+		cout<<"\n\tEnter a Address of Student  : ";
+		cin>>rec.add;
+		fout.write((char *)&rec,sizeof(stud))<<flush;
+		cout<<"\n\tDo You Want to Add More Records: ";
+		cin>>ans;
+	  }while(ans=='y'||ans=='Y');
+	fout.close();
+  }
+void student::display()
+  {
+	ifstream fin;
+	fin.open("stud.dat",ios::in|ios::binary);
+	fin.seekg(0,ios::beg);
+	cout<<"\n\tThe Content of File are:\n";
+	cout<<"\n\tRoll\tName\tDiv\tAddress";
+	while(fin.read((char *)&rec,sizeof(stud)))
+	  {
+		if(rec.roll!=-1)
+       		  cout<<"\n\t"<<rec.roll<<"\t"<<rec.name<<"\t"<<rec.div<<"\t"<<rec.add;
+	  }
+	fin.close();
+  }
+int student::search()
+  {
+	int r,i=0;
+	ifstream fin;
+	fin.open("stud.dat",ios::in|ios::binary);
+	fin.seekg(0,ios::beg);
+	cout<<"\n\tEnter a Roll No: ";
+	cin>>r;
+	while(fin.read((char *)&rec,sizeof(stud)))
+	  {
+		if(rec.roll==r)
+		  {
+			cout<<"\n\tRecord Found...\n";
+			cout<<"\n\tRoll\tName\tDiv\tAddress";
+			cout<<"\n\t"<<rec.roll<<"\t"<<rec.name<<"\t"<<rec.div<<"\t"<<rec.add;
+			return i;
+		  }
+		i++;
+	  }
+	fin.close();
+	return 0;
+  }
+void student::Delete()
+  {
+	int pos;
+	pos=search();
+	fstream f;
+	f.open("stud.dat",ios::in|ios::out|ios::binary);
+	f.seekg(0,ios::beg);
+	if(pos==0)
+	  {
+		cout<<"\n\tRecord Not Found";
+		return;
+	  }
+	int offset=pos*sizeof(stud);
+	f.seekp(offset);
+	rec.roll=-1;
+	strcpy(rec.name,"NULL");
+	rec.div='N';
+	strcpy(rec.add,"NULL");
+	f.write((char *)&rec,sizeof(stud));
+	f.seekg(0);
+	f.close();
+	cout<<"\n\tRecord Deleted";
+  }
+	
+int main()
+  {
+	student obj;
+	int ch,key;
+	char ans;
+	do
+	  {
+		cout<<"\n\t***** Student Information *****";
+		cout<<"\n\t1. Create\n\t2. Display\n\t3. Delete\n\t4. Search\n\t5. Exit";
+		cout<<"\n\t..... Enter Your Choice: ";
+		cin>>ch;
+		switch(ch)
+		  {
+			case 1: obj.create();
+				break;
+			case 2:	obj.display();
+				break;
+			case 3: obj.Delete();
+				break;
+			case 4: key=obj.search();
+				if(key==0)
+				  cout<<"\n\tRecord Not Found...\n";
+				break;
+			case 5:
+				break;
+		  }
+		cout<<"\n\t..... Do You Want to Continue in Main Menu: ";
+		cin>>ans;
+	  }while(ans=='y'||ans=='Y');
+return 1;
+  }
+
+This C++ program manages **student records** using **sequential file handling** with binary files. It performs four primary operations:
+
+* **Create** (add records)
+* **Display** (show all valid records)
+* **Search** (by roll number)
+* **Delete** (by marking a record invalid)
+
+Let’s break it down.
+
+---
+
+### ✅ **Structure Used**
+
+```cpp
+typedef struct stud {
+    int roll;
+    char name[10];
+    char div;
+    char add[10];
+} stud;
+```
+
+This structure holds data for a single student:
+
+* `roll`: Roll number
+* `name`: Student's name (max 9 characters + null terminator)
+* `div`: Division (single character like 'A', 'B')
+* `add`: Address (max 9 characters + null terminator)
+
+---
+
+### ✅ **Class: `student`**
+
+The class encapsulates the `stud` struct and provides operations:
+
+```cpp
+class student {
+    stud rec; // object of struct to hold one student's data
+public:
+    void create();   // Add records
+    void display();  // Display all valid records
+    int search();    // Search record by roll number
+    void Delete();   // Logically delete record
+};
+```
+
+---
+
+### 📝 **Function Explanations**
+
+---
+
+#### 🔹 `void create()`
+
+* Opens the binary file `stud.dat` for writing (overwrites existing file).
+* Accepts student details in a loop.
+* Writes each student's data into the file in binary format using `fout.write(...)`.
+
+---
+
+#### 🔹 `void display()`
+
+* Opens `stud.dat` for reading.
+* Reads each record and skips those with `roll == -1` (which are "deleted").
+* Prints valid student records in a table format.
+
+---
+
+#### 🔹 `int search()`
+
+* Asks user to enter a **roll number**.
+* Searches for that roll number in the file sequentially.
+* If found, displays the student data and returns the record’s index (position).
+* If not found, returns 0.
+
+---
+
+#### 🔹 `void Delete()`
+
+* Calls `search()` to find the record's position.
+* If found, reopens the file for reading/writing.
+* Uses `seekp` to go to the correct byte offset.
+* Overwrites that record with dummy values:
+
+  * `roll = -1` → marks as deleted
+  * `name = "NULL"`, `div = 'N'`, `add = "NULL"`
+
+This is a **logical deletion**, not physical deletion. The record still exists in the file but is marked invalid.
+
+---
+
+### 🧾 **Main Menu**
+
+```cpp
+int main() {
+    student obj;
+    ...
+    do {
+        // Menu for operations
+        // Calls corresponding functions
+    } while (user chooses to continue);
+}
+```
+
+Menu options:
+
+1. Create records
+2. Display all records
+3. Delete a record
+4. Search for a record
+5. Exit
+
+Each choice calls the corresponding class method.
+
+---
+
+### 📌 Key Concepts
+
+* **Binary File I/O**: Uses `read()` and `write()` to work with structures in binary.
+* **Sequential File**: Data is stored one after the other; search is linear.
+* **Logical Deletion**: Record is marked invalid instead of being physically removed.
+* **Persistence**: Data is saved across program runs in `stud.dat`.
+
+---
+
+### ⚠️ Limitations / Improvements
+
+* **Fixed record size**: Name and address are limited to 9 characters.
+* **No edit/update option**.
+* **Search returns 0 on failure**, which is ambiguous (index 0 could be valid).
+* **create()** overwrites the existing file. Could use append mode (`ios::app`) instead.
+
+---
+
+Would you like an updated version that supports **record updates**, **appending**, or **file compaction** (removing deleted records physically)?
+

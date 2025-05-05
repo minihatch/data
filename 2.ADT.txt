@@ -1,0 +1,205 @@
+table = []
+b, totl = 0, 0
+bucket = {}
+
+def create():
+    global b
+    b = int(input("Enter the table size: "))
+    for i in range(b):
+        table.append([None, -1])
+        bucket[i] = -1
+
+def printtable():
+    global b
+    for i in range(b):
+        print(table[i], end=" | ")
+    print("")
+
+def chaininsert(key):
+    global b, totl
+    hash = key % b
+    if table[hash][0] == None:
+        table[hash][0] = key
+        bucket[key % b] = hash
+    else:
+        flag = 0
+        for i in range(b):
+            hash = (key + i) % b
+            if table[hash][0] == None:
+                totl += 1
+                flag = 1
+                if bucket[key % b] != -1:
+                    table[bucket[key % b]][1] = hash
+                bucket[key % b] = hash
+                table[hash][0] = key
+                break
+        if flag == 0:
+            print("Key:", key, "not inserted - table full.")
+
+def chainsearch(key):
+    global b
+    hash = key % b
+    if table[hash][0] == key:
+        print("Key:", key, "is found at index:", hash)
+    else:
+        flag, i = 0, 0
+        chain = table[hash][1]
+
+        while table[hash][0] != None and table[hash][0] % b != key % b:
+            hash = (key + i) % b
+            chain = table[hash][1]
+            if table[hash][0] == key:
+                print("Key:", key, "is found at index:", hash)
+                chain = -1
+                flag = 1
+                break
+            i += 1
+
+        while chain != -1:
+            if table[chain][0] == key:
+                print("Key:", key, "is found at index:", chain)
+                flag = 1
+                break
+            chain = table[chain][1]
+
+        if flag == 0:
+            print("Key:", key, "not found.")
+
+def chaindelete(key):
+    global b
+    hash = key % b
+    if table[hash][0] == key:
+        table[hash][0], table[hash][1] = None, -1
+        print("Key:", key, "was deleted from index:", hash)
+    else:
+        flag, i = 0, 0
+        pchain = hash
+        chain = table[hash][1]
+        while table[hash][0] != None and table[hash][0] % b != key % b:
+            hash = (key + i) % b
+            pchain = chain
+            chain = table[hash][1]
+            if table[hash][0] == key:
+                table[pchain][1] = table[chain][1]
+                table[chain][0], table[chain][1] = None, -1
+                print("Key:", key, "was deleted from index:", chain)
+                chain = -1
+                flag = 1
+                break
+            i += 1
+
+        while chain != -1:
+            if table[chain][0] == key:
+                table[pchain][1] = table[chain][1]
+                table[chain][0], table[chain][1] = None, -1
+                print("Key:", key, "was deleted from index:", chain)
+                flag = 1
+                break
+            pchain = chain
+            chain = table[chain][1]
+
+        if flag == 0:
+            print("Key:", key, "not found.")
+
+create()
+while True:
+    ch = int(input("Enter 1-Table | 0-EXIT: "))
+    if ch == 1:
+        while True:
+            ch2 = int(input("Enter 1-Insert | 2-Search | 3-Delete | 0-BACK: "))
+            if ch2 == 1:
+                key = int(input("Enter the key to be inserted: "))
+                chaininsert(key)
+                printtable()
+            elif ch2 == 2:
+                key = int(input("Enter the key to be searched: "))
+                chainsearch(key)
+                printtable()
+            elif ch2 == 3:
+                key = int(input("Enter the key to be searched: "))
+                chaindelete(key)
+                printtable()
+            elif ch2 == 0:
+                print("GOING BACK.")
+                printtable()
+                break
+    elif ch == 0:
+        print("EXITING")
+        printtable()
+        break
+    else:
+        printtable()
+
+
+This Python program implements **hashing with chaining without replacement** using an open-addressing style of chaining. It simulates a **dictionary/hash table** that can insert, search, and delete keys while managing collisions using a custom chaining logic.
+
+---
+
+### 🔧 Data Structures Used
+
+1. **`table[]`**: A list of size `b` (user-defined) where each element is a list: `[key, next_index]`.
+
+   * `key`: holds the value.
+   * `next_index`: is used for chaining (linked list-like behavior).
+
+2. **`bucket{}`**: A dictionary to track the head of the chain for each bucket.
+
+3. **`b`**: Size of the table.
+
+4. **`totl`**: Counts the number of collisions handled.
+
+---
+
+### 📘 Function Breakdown
+
+#### `create()`
+
+* Initializes the hash table with the given size.
+* Every entry is `[None, -1]`, where `None` indicates an empty slot, and `-1` means no next in chain.
+
+#### `printtable()`
+
+* Prints the current hash table in a readable format.
+
+#### `chaininsert(key)`
+
+* Computes `hash = key % b`.
+* If the hash index is empty, inserts the key there and sets the bucket head.
+* If it's **occupied**, it linearly probes the table to find the next available space and:
+
+  * Adds it to the end of the chain.
+  * Updates `totl` for collision count.
+* If no space is found, prints that the table is full.
+
+#### `chainsearch(key)`
+
+* Starts at `hash = key % b`.
+* If found directly, prints the index.
+* If not:
+
+  * Checks if another entry has been placed in a different slot but belongs to this bucket.
+  * Follows the chain using the second element (`next_index`) until it finds the key or the end.
+
+#### `chaindelete(key)`
+
+* Deletes a key if present.
+* If found at the original hash index, clears it.
+* Else, walks the chain and:
+
+  * Adjusts the chain by linking the previous node to the next of the node being deleted.
+  * Removes the key and resets that position.
+
+---
+
+### 🧪 Main Driver
+
+* Asks user to set the table size.
+* Then repeatedly:
+
+  * Shows a menu:
+
+    * Insert
+    * Search
+    * Delete
+    * Back
+* Performs operations based on user input until they exit.

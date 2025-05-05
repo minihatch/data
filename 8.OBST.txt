@@ -1,0 +1,265 @@
+
+#include <iostream>
+using namespace std;
+
+class obst {
+    int a[10], r[10][10], n;
+    float p[10], q[10], w[10][10], c[10][10];
+
+public:
+    void accept();
+    void cons_obst();
+    int find_min(int, int);
+    void tree(int i, int j);
+};
+
+void obst::accept() {
+    int i;
+    cout << "\nHow many elements are there in the tree? : ";
+    cin >> n;
+
+    cout << "\nEnter " << n << " elements:\n";
+    for (i = 1; i <= n; i++)
+        cin >> a[i];
+
+    cout << "\nEnter " << n << " successful search probabilities (p):\n";
+    for (i = 1; i <= n; i++)
+        cin >> p[i];
+
+    cout << "\nEnter " << n + 1 << " failure probabilities (q):\n";
+    for (i = 0; i <= n; i++)
+        cin >> q[i];
+}
+
+void obst::cons_obst() {
+    int i, m, j, k;
+
+    // Initialize weight and cost for subtree sizes 0 and 1
+    for (i = 0; i < n; i++) {
+        w[i][i] = q[i];
+        c[i][i] = r[i][i] = 0;
+
+        w[i][i + 1] = q[i] + p[i + 1] + q[i + 1];
+        c[i][i + 1] = w[i][i + 1];
+        r[i][i + 1] = i + 1;
+    }
+    w[n][n] = q[n];
+    c[n][n] = r[n][n] = 0;
+
+    // Build tables for all subtree sizes from 2 to n
+    for (m = 2; m <= n; m++) {
+        for (i = 0; i <= n - m; i++) {
+            j = i + m;
+            w[i][j] = w[i][j - 1] + p[j] + q[j];
+            k = find_min(i, j);  // Find optimal root
+            c[i][j] = w[i][j] + c[i][k - 1] + c[k][j];
+            r[i][j] = k;
+        }
+    }
+
+    // Print root and recursive tree
+    cout << "\nRoot node is: " << a[r[0][n]] << endl;
+
+    cout << "Left child of " << a[r[0][n]] << " is: ";
+    tree(0, r[0][n] - 1);
+
+    cout << "\nRight child of " << a[r[0][n]] << " is: ";
+    tree(r[0][n], n);
+    cout << endl;
+}
+
+int obst::find_min(int i, int j) {
+    int min = 999;
+    int k, z = -1;
+
+    for (k = r[i][j - 1]; k <= r[i + 1][j]; k++) {
+        cout << "\ni = " << i << ", j = " << j << ", k = " << k;
+        if ((c[i][k - 1] + c[k][j]) < min) {
+            min = c[i][k - 1] + c[k][j];
+            z = k;
+        }
+    }
+    return z;
+}
+
+void obst::tree(int i, int j) {
+    if (r[i][j] == 0) {
+        cout << " NULL";
+        return;
+    }
+
+    cout << " " << a[r[i][j]];
+
+    cout << "\nLeft child of " << a[r[i][j]] << " is:";
+    tree(i, r[i][j] - 1);
+
+    cout << "\nRight child of " << a[r[i][j]] << " is:";
+    tree(r[i][j], j);
+}
+
+int main() {
+    obst o;
+    o.accept();
+    o.cons_obst();
+    return 0;
+}
+
+This C++ program constructs an **Optimal Binary Search Tree (OBST)** using **Dynamic Programming**. It minimizes the **expected cost of searches**, given the probabilities of successful and unsuccessful searches for each key.
+
+---
+
+### ✅ **Program Title:**
+
+**Optimal Binary Search Tree (OBST)** using Dynamic Programming
+
+---
+
+### ✅ **Objective:**
+
+To build a **binary search tree** from a sorted array of keys such that the **total expected search cost** is minimized, based on:
+
+* `p[i]`: probability of successful search for key `a[i]`
+* `q[i]`: probability of unsuccessful search between keys
+
+---
+
+### ✅ **Key Concepts:**
+
+* **Dynamic Programming** is used to compute:
+
+  * `w[i][j]`: total weight (sum of probabilities) from `i` to `j`
+  * `c[i][j]`: minimum cost for searching subtree from `i` to `j`
+  * `r[i][j]`: root of optimal subtree from `i` to `j`
+
+---
+
+### ✅ **Data Members of Class `obst`:**
+
+```cpp
+int a[10];               // keys (1-based index)
+float p[10];             // probabilities of successful searches
+float q[10];             // probabilities of unsuccessful searches
+float w[10][10];         // weight matrix (sum of p and q)
+float c[10][10];         // cost matrix (min expected cost)
+int r[10][10];           // root matrix (stores root for subtree)
+int n;                   // number of keys
+```
+
+---
+
+### ✅ **Function: `accept()`**
+
+* Reads the number of keys `n`
+* Accepts:
+
+  * `n` keys
+  * `n` successful search probabilities `p[1..n]`
+  * `n+1` failure probabilities `q[0..n]` (for gaps between keys)
+
+---
+
+### ✅ **Function: `cons_obst()`**
+
+Constructs the OBST using dynamic programming.
+
+1. **Initialization (subtrees of size 0 and 1):**
+
+   * `w[i][i] = q[i]` (empty subtree)
+   * `w[i][i+1] = q[i] + p[i+1] + q[i+1]`
+   * `c[i][i+1] = w[i][i+1]`
+   * `r[i][i+1] = i+1` (root is key `a[i+1]`)
+
+2. **Dynamic Programming for all subtree sizes `m = 2 to n`:**
+   For each interval `[i..j]`:
+
+   * Calculate total weight `w[i][j]`
+   * Find the optimal root `k` using `find_min(i, j)`
+   * Compute minimum cost `c[i][j]`
+   * Store root `r[i][j]`
+
+3. **Print the OBST:**
+
+   * Shows the root of full tree
+   * Recursively prints left and right children using `tree()` function
+
+---
+
+### ✅ **Function: `find_min(int i, int j)`**
+
+Finds the **optimal root `k`** in range `[i+1..j]` that **minimizes**:
+
+```
+c[i][k-1] + c[k][j]
+```
+
+This cost is added to the weight `w[i][j]` in `cons_obst()`.
+
+Uses the **Knuth’s optimization**:
+
+```cpp
+for (k = r[i][j - 1]; k <= r[i + 1][j]; k++)
+```
+
+This speeds up the DP solution by narrowing down the root search range.
+
+---
+
+### ✅ **Function: `tree(int i, int j)`**
+
+Recursively builds and displays the OBST using `r[i][j]`.
+
+If `r[i][j] == 0`, it’s a null subtree (base case).
+
+Otherwise:
+
+* Prints the key at root
+* Recursively prints its left and right children
+
+---
+
+### ✅ **`main()` Function**
+
+Simple execution:
+
+```cpp
+obst o;
+o.accept();
+o.cons_obst();
+```
+
+---
+
+### ✅ **Sample Input:**
+
+```
+Number of elements: 3
+Keys: 10 20 30
+p (success): 0.3 0.2 0.1
+q (failure): 0.1 0.05 0.05 0.1
+```
+
+---
+
+### ✅ **Sample Output:**
+
+```
+Root node is: 20
+Left child of 20 is: 10
+Left child of 10 is: NULL
+Right child of 10 is: NULL
+Right child of 20 is: 30
+Left child of 30 is: NULL
+Right child of 30 is: NULL
+```
+
+---
+
+### ✅ **Viva Questions:**
+
+1. What is an Optimal Binary Search Tree?
+2. What are `p[i]` and `q[i]`?
+3. What is the time complexity of OBST using DP? → **O(n³)** (with Knuth’s optimization: **O(n²)**)
+4. Why use Dynamic Programming?
+5. How does the `r[i][j]` matrix help construct the OBST?
+
+Would you like a diagram to visualize the OBST generated from a sample input?

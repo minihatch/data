@@ -1,0 +1,205 @@
+#include <iostream>
+#include <fstream>
+#include <cstring>
+using namespace std;
+
+struct IndexPair {
+    int id, pos;
+    void display() {
+        cout << "ID = " << id << ", Position = " << pos << endl;
+    }
+};
+
+class Employee {
+    int id;
+    char name[35];
+    float salary;
+    char designation[15];
+
+public:
+    Employee() {
+        id = 0;
+        strcpy(name, "");
+        salary = 0.0;
+        strcpy(designation, "");
+    }
+
+    int get_id() const { return id; }
+
+    void get_data() {
+        cout << "Enter Employee ID: ";
+        cin >> id;
+        cin.ignore();
+        cout << "Enter Name: ";
+        cin.getline(name, 35);
+        cout << "Enter Salary: ";
+        cin >> salary;
+        cin.ignore();
+        cout << "Enter Designation: ";
+        cin.getline(designation, 15);
+    }
+
+    void display() const {
+        cout << "ID: " << id << ", Name: " << name << ", Salary: " << salary << ", Post: " << designation << endl;
+    }
+
+    void set_salary(float new_salary) { salary = new_salary; }
+};
+
+// Helper to get record count
+int get_record_count() {
+    ifstream file("empDB.dat", ios::binary | ios::ate);
+    if (!file) return 0;
+    int size = file.tellg();
+    return size / sizeof(Employee);
+}
+
+void write_data(const Employee& emp) {
+    ofstream emp_file("empDB.dat", ios::binary | ios::app);
+    ofstream idx_file("index.dat", ios::binary | ios::app);
+    if (!emp_file || !idx_file) {
+        cout << "Error opening files.\n";
+        return;
+    }
+
+    int pos = get_record_count();
+    IndexPair idx = { emp.get_id(), pos };
+    idx_file.write((char*)&idx, sizeof(idx));
+    emp_file.write((char*)&emp, sizeof(emp));
+
+    cout << "Employee data inserted successfully at position " << pos << ".\n";
+
+    emp_file.close();
+    idx_file.close();
+}
+
+void read_all_data() {
+    ifstream emp_file("empDB.dat", ios::binary);
+    if (!emp_file) {
+        cout << "No employee records found.\n";
+        return;
+    }
+
+    Employee emp;
+    while (emp_file.read((char*)&emp, sizeof(emp))) {
+        emp.display();
+    }
+
+    emp_file.close();
+}
+
+void search_employee(int id) {
+    ifstream idx_file("index.dat", ios::binary);
+    ifstream emp_file("empDB.dat", ios::binary);
+
+    if (!idx_file || !emp_file) {
+        cout << "Error opening files.\n";
+        return;
+    }
+
+    IndexPair idx;
+    bool found = false;
+    while (idx_file.read((char*)&idx, sizeof(idx))) {
+        if (idx.id == id) {
+            found = true;
+            break;
+        }
+    }
+
+    if (!found) {
+        cout << "Employee not found.\n";
+        return;
+    }
+
+    emp_file.seekg(idx.pos * sizeof(Employee), ios::beg);
+    Employee emp;
+    emp_file.read((char*)&emp, sizeof(emp));
+    emp.display();
+
+    idx_file.close();
+    emp_file.close();
+}
+
+void modify_salary(int id, float new_salary) {
+    fstream idx_file("index.dat", ios::binary | ios::in);
+    fstream emp_file("empDB.dat", ios::binary | ios::in | ios::out);
+
+    if (!idx_file || !emp_file) {
+        cout << "Error opening files.\n";
+        return;
+    }
+
+    IndexPair idx;
+    bool found = false;
+    while (idx_file.read((char*)&idx, sizeof(idx))) {
+        if (idx.id == id) {
+            found = true;
+            break;
+        }
+    }
+
+    if (!found) {
+        cout << "Employee not found.\n";
+        return;
+    }
+
+    emp_file.seekg(idx.pos * sizeof(Employee), ios::beg);
+    Employee emp;
+    emp_file.read((char*)&emp, sizeof(emp));
+
+    emp.set_salary(new_salary);
+
+    emp_file.seekp(idx.pos * sizeof(Employee), ios::beg);
+    emp_file.write((char*)&emp, sizeof(emp));
+
+    cout << "Salary updated successfully.\n";
+
+    idx_file.close();
+    emp_file.close();
+}
+
+int main() {
+    int choice;
+    while (true) {
+        cout << "\n===== Employee Database Menu =====\n";
+        cout << "1. Add Employee\n";
+        cout << "2. Modify Salary\n";
+        cout << "3. Search Employee\n";
+        cout << "4. Display All Employees\n";
+        cout << "5. Exit\n";
+        cout << "Enter choice: ";
+        cin >> choice;
+
+        int id;
+        float sal;
+        Employee emp;
+
+        switch (choice) {
+            case 1:
+                emp.get_data();
+                write_data(emp);
+                break;
+            case 2:
+                cout << "Enter Employee ID to modify: ";
+                cin >> id;
+                cout << "Enter new salary: ";
+                cin >> sal;
+                modify_salary(id, sal);
+                break;
+            case 3:
+                cout << "Enter Employee ID to search: ";
+                cin >> id;
+                search_employee(id);
+                break;
+            case 4:
+                read_all_data();
+                break;
+            case 5:
+                return 0;
+            default:
+                cout << "Invalid choice.\n";
+        }
+    }
+
+    return 0;
+}

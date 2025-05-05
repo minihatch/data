@@ -1,0 +1,159 @@
+SIZE = 10
+ch = 0
+databasee = [None] * SIZE
+
+def hash(val): return val % SIZE
+
+def insert_data(record):
+	hashed_index = hash(record[1])
+	for i in range(SIZE):
+		if databasee[hashed_index] is None:
+			databasee[hashed_index] = record
+			print("Record added to database.")
+			return
+		hashed_index = (hashed_index + 1) % SIZE
+	print("Database is full.")
+
+def search(ph_number):
+    hashed_index = hash(ph_number)
+    i = 0
+    while i < SIZE:
+        record = databasee[hashed_index]
+        if record is None:
+            break
+        if record[1] == ph_number:
+            print("Record Found: ", databasee[hashed_index])
+            return
+        hashed_index = (hashed_index + 1) % SIZE
+        i += 1
+    print("No Such Data.")
+
+
+def display(): print(databasee)
+	
+while True:
+    print("\n1. Enter Data.")
+    print("2. Search Data.")
+    print("3. Display Data.")
+    print("0. Exit.")
+    ch = int(input("Enter Your Choice: "))
+    if(ch == 1):
+        record = []
+        record.append(input("Enter Name             : "))
+        record.append(int(input("Enter Telephone Number : ")))
+        insert_data(record)
+    elif(ch == 2):
+        search(int(input("Enter Telephone Number : ")))
+    elif(ch == 3):
+        display()
+    elif(ch == 0):
+        exit(0)
+
+
+
+This Python code implements a **simple hash table** for storing and managing employee records (or any other data) based on a **telephone number** using **linear probing** for collision resolution. Here's a breakdown of the key components and functionality:
+
+---
+
+### 1. **Global Variables:**
+
+* `SIZE = 10`: Defines the size of the hash table, which is an array `databasee` with 10 slots to store records.
+* `ch = 0`: This is a placeholder for the user’s menu choice.
+* `databasee = [None] * SIZE`: Initializes an empty hash table with 10 slots, each initially set to `None` to signify an empty slot.
+
+### 2. **Hash Function:**
+
+```python
+def hash(val): return val % SIZE
+```
+
+* This is a basic **hash function** that takes an integer (in this case, the telephone number) and calculates its hash by taking the modulus with the size of the hash table (`SIZE`). This ensures that the hash value fits within the available slots in the table.
+
+### 3. **Insert Data:**
+
+```python
+def insert_data(record):
+    hashed_index = hash(record[1])
+    for i in range(SIZE):
+        if databasee[hashed_index] is None:
+            databasee[hashed_index] = record
+            print("Record added to database.")
+            return
+        hashed_index = (hashed_index + 1) % SIZE
+    print("Database is full.")
+
+
+* This function inserts a new record (which contains a name and telephone number) into the hash table.
+* The hash index is first calculated using the telephone number (`record[1]`).
+* If the slot at the hashed index is **empty** (`None`), the record is added at that index.
+* If the slot is already occupied, it uses **linear probing** to try the next index by incrementing the `hashed_index` and using modulo operation to wrap around when it exceeds the table size.
+* If the table is full (i.e., no empty slots are found after probing all `SIZE` slots), it prints "Database is full."
+
+### 4. **Search Data:**
+
+```python
+def search(ph_number):
+    hashed_index = hash(ph_number)
+    i = 0
+    while i < SIZE:
+        record = databasee[hashed_index]
+        if record is None:
+            break
+        if record[1] == ph_number:
+            print("Record Found: ", databasee[hashed_index])
+            return
+        hashed_index = (hashed_index + 1) % SIZE
+        i += 1
+    print("No Such Data.")
+```
+
+* This function searches for a record based on the telephone number.
+* It computes the hash index for the phone number and checks the corresponding slot in the table.
+* If the slot is **empty**, it terminates the search.
+* If the record’s phone number matches the search query, it prints the record.
+* If the record is not found after checking all available slots, it prints "No Such Data."
+
+### 5. **Display Data:**
+
+```python
+def display(): 
+    print(databasee)
+```
+
+* This function simply prints the **current contents** of the hash table (`databasee`).
+
+### 6. **Menu-driven Program:**
+
+```python
+while True:
+    print("\n1. Enter Data.")
+    print("2. Search Data.")
+    print("3. Display Data.")
+    print("0. Exit.")
+    ch = int(input("Enter Your Choice: "))
+```
+
+* This is a **menu-driven loop** that allows the user to interact with the program.
+* The user can choose from the following options:
+
+  1. **Enter Data:** Prompts the user to input a name and a telephone number and then calls the `insert_data()` function.
+  2. **Search Data:** Prompts the user to input a phone number and calls the `search()` function to look for the corresponding record.
+  3. **Display Data:** Displays the entire content of the hash table.
+  4. **Exit:** Exits the program.
+
+---
+
+### **Summary of Key Concepts:**
+
+* **Linear Probing:** When a collision occurs (i.e., the hash index is already occupied), the program checks the next slot in the array and continues until it finds an empty slot or reaches the end of the array.
+* **Hash Function:** A simple modulo operation that ensures records are placed in the correct position within the hash table.
+* **Menu-Driven Interaction:** The program allows for user input to interact with the hash table, including inserting, searching, and displaying data.
+
+### **Example:**
+
+* Let's say the user wants to insert a record with the name "John" and telephone number `12345`. The hash function calculates the index using `12345 % SIZE = 12345 % 10 = 5`. The record will be stored at index 5 if it's available. If that index is already occupied, linear probing will check the next available slot.
+
+---
+
+This code demonstrates basic **hashing**, **collision resolution**, and **linear probing** in a hash table, using a practical example of managing employee or phone records.
+

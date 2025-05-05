@@ -1,0 +1,294 @@
+#include <iostream>
+#include <string.h>
+
+using namespace std;
+
+struct Node
+{
+	int flag;
+	char title[30];
+	Node* down;
+	Node* next;
+	
+	Node()
+	{
+		flag = 0;
+		strcpy(title, "");
+		down = nullptr;
+		next = nullptr;
+	}
+	
+	Node(char titl[])
+	{
+		flag = 0;
+		strcpy(title, titl);
+		down = nullptr;
+		next = nullptr;
+	}
+};
+
+class GeneralizedLinkedList
+{
+	private:
+		Node *root;
+		
+	public:
+		GeneralizedLinkedList(char titl[30])
+		{
+			root = new Node(titl);
+		}
+		char* getTitle()
+		{
+			return root->title;
+		}
+		Node* getSection(char titl[30])
+		{
+			Node *temp = root->down;
+			while(temp != NULL)
+			{
+				if(strcmp(temp->title, titl) == 0)
+					return temp;
+				temp = temp->next;
+			}
+			return NULL;
+		}
+		Node* create_node(string title)
+		{
+			char titl[30];
+			cout << "Enter " << title << " Title: ";
+			cin.getline(titl, 30);
+			Node *newnode = new Node(titl);
+			return newnode;
+		}
+		
+		void add_section(Node *section_root = NULL)
+		{
+			string titlee;
+			if(section_root == NULL && root == NULL)
+			{
+				cout << "Not Found";
+				return;
+			}
+			section_root = (section_root == NULL) ? root : section_root;
+			titlee = (section_root == root) ? "Section" : "SubSection";
+			Node *sect = create_node(titlee);
+			if(section_root->flag == 0) {
+				section_root->down = sect;
+				section_root->flag = 1;
+			}
+			else {
+				Node *temp = section_root->down;
+				while(temp->next != nullptr)
+					temp = temp->next;
+				temp->next = sect;
+			}
+			cout << "Successfully Added." << endl;
+		}
+		
+		void display()
+		{
+			Node *temp = root;
+			Node *subsection;
+			Node *section;
+			cout << "\n";
+			cout << "Title = " << temp->title <<endl;
+			section = temp->down;
+			while(section != NULL)
+			{
+				cout << "\t";
+				cout << "Section = " << section->title << endl;
+				subsection = section->down; 
+				while(subsection != NULL)
+				{
+					cout << "\t\t";
+					cout << "Subsection = " << subsection->title << endl;
+					subsection = subsection->next;
+				}				
+				section = section->next;
+			}	
+		}
+	
+};
+
+int main()
+{
+	GeneralizedLinkedList *gl[10] = {nullptr};
+	GeneralizedLinkedList *gll;
+	char bookname[30];
+	char section_name[30];
+	int ch = 0;
+	int index = 0;
+	Node *temp;
+	do
+	{
+		cout << "\n\n1. Create Book" << endl;
+		cout << "2. Create Section" << endl;
+		cout << "3. Create Subsection" << endl;
+		cout << "4. Display Book" << endl;
+		cout << "0. Exit" << endl;
+		cout << "Enter Your Choice : ";
+		cin >> ch;
+		cin.ignore();
+		switch(ch)
+		{
+			case 1: cout << "Enter Book Title : ";
+					cin.getline(bookname, 30);
+					gll = new GeneralizedLinkedList(bookname);
+					gl[index] = gll;
+					index++;
+					cout << "Book Created." << endl;
+					break;
+			case 2: cout << "Enter Book Name in which to be added : ";
+					cin.getline(bookname, 30);
+					for(int i = 0; i < 5; ++i)
+					{
+						if(gl[i] == nullptr)
+						{
+							cout << "Unable to find Book" << endl;
+							break;
+						}	
+						if(strcmp(gl[i]->getTitle(), bookname) == 0)
+						{
+							gl[i]->add_section();
+							break;
+						}
+					}
+					break;
+			case 3: cout << "Enter Book Name in which to be added : ";
+					cin.getline(bookname, 30);
+					cout << "Enter Section Title : ";
+					cin.getline(section_name, 30);
+					for(int i = 0; i < 5; ++i)
+					{
+						if(gl[i] == nullptr)
+						{
+							cout << "Unable to find Book";
+							break;
+						}	
+						if(strcmp(gl[i]->getTitle(), bookname) == 0)
+						{
+							temp = gl[i]->getSection(section_name);
+							if(temp != NULL)
+							{
+								gl[i]->add_section(temp);
+								break;
+							}
+							cout << "No Found";
+							break;
+						}
+					}
+					break;
+			case 4: for(int i = 0; i < index; ++i)
+						gl[i]->display();
+					break;
+			case 0: exit(0);
+					break;
+			default:cout << "Invalid Input" << endl;
+		}
+	}while(ch != 0);
+	return 0;
+}
+
+
+This C++ program implements a **Generalized Linked List (GLL)** to model a hierarchical structure for **Books**, **Sections**, and **Subsections**. The idea is to represent nested levels using linked list pointers — similar to how a table of contents works in a book.
+
+Let me explain it component by component:
+
+---
+
+## ✅ **STRUCTURE DEFINITION**
+
+### `struct Node`
+
+* Represents a node in the Generalized Linked List.
+
+* **Attributes:**
+
+  * `flag`: Tells whether this node has children (1 = has children, 0 = no children).
+  * `title`: Stores the name/title (Book, Section, or Subsection).
+  * `down`: Points to the first child (Section/Subsection).
+  * `next`: Points to the next sibling at the same level.
+
+* **Constructors:**
+
+  * Default constructor initializes an empty title and sets `flag = 0`.
+  * Parameterized constructor initializes title with the given input.
+
+---
+
+## ✅ **CLASS: `GeneralizedLinkedList`**
+
+This class handles operations on a **single book**, which contains:
+
+* A root node (the Book title),
+* Sections (linked via `down`),
+* Subsections (linked to each section using their own `down` and `next`).
+
+### Key Functions:
+
+#### 1. **Constructor**
+
+```cpp
+GeneralizedLinkedList(char titl[30])
+```
+
+* Initializes the `root` node with the book title.
+
+#### 2. **getTitle()**
+
+* Returns the title of the current book.
+
+#### 3. **getSection(titl)**
+
+* Searches for a section by its title under the current book.
+* Returns the node pointer to that section if found.
+
+#### 4. **create\_node(title)**
+
+* Prompts the user to input a title for a Section or Subsection.
+* Returns a pointer to a new `Node`.
+
+#### 5. \**add\_section(Node *section\_root = NULL)**
+
+* If `section_root == NULL`, adds a **section to the book**.
+* If `section_root` is provided, adds a **subsection to the given section**.
+* Checks if a `down` pointer exists (meaning it has children); if not, it adds the new node there, else it appends to the end using `next`.
+
+#### 6. **display()**
+
+* Displays the entire structure of a book:
+
+  * Book title
+  * All Sections
+  * All Subsections under each Section
+
+---
+
+## ✅ **`main()` FUNCTION**
+
+* Maintains an array of pointers `gl[10]` to handle up to 10 books.
+* Implements a menu-driven interface:
+
+### Menu Options:
+
+#### 1. **Create Book**
+
+* Takes a book title and creates a new `GeneralizedLinkedList` object.
+* Stores it in the `gl[]` array.
+
+#### 2. **Create Section**
+
+* Searches the array for the entered book.
+* If found, calls `add_section()` to insert a **section** under the book.
+
+#### 3. **Create Subsection**
+
+* First finds the book.
+* Then finds the section inside that book using `getSection()`.
+* If both are found, calls `add_section(section_node)` to insert the **subsection**.
+
+#### 4. **Display Book**
+
+* Iterates through all stored books in the array and displays their structure using `display()`.
+
+#### 0. **Exit**
